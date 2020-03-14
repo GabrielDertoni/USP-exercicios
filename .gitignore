@@ -1,0 +1,14 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+*.o
+*.in
+*.out
+*.DS_Store
+*Casos\ de\ Teste\ -*
