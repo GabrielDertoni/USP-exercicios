@@ -11,4 +11,5 @@
 *.in
 *.out
 *.DS_Store
-*Casos\ de\ Teste\ -*
+*Casos\ de\ Teste*
+*SCC0200/

@@ -5,7 +5,7 @@ int main() {
 	scanf("%d", &n);
 
 	// Cálculo do denominador da equação de média harmônica amortizada.
-	double den;
+	double den = 0;
 	for (int i = 0; i < n; i++) {
 		double t;
 		scanf("%lf", &t);
