@@ -1,33 +1,52 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <math.h>
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
 
-bool is_prime(int n) {
-	for (int i = 2; i < (int)sqrt((double)n); i++) {
-		if (n % i == 0) return false;
-	}
-	return true;
-}
+int main(void){
+    // int num, primo, posicao, nPrimos = 0, *primos, *potencia;
+    int num, primo, nPrimos = 0;
+    
+    scanf("%d", &num);
+    
+    for(primo = 2; primo <= num; primo++){
+        int i;
+        for(i = 2; i < primo && primo % i != 0; i++);
+        if (i == primo) nPrimos++;
+    }
+    /*
+    primos = (int *)malloc(nPrimos * sizeof(int));
+    potencia = (int *)malloc(nPrimos * sizeof(int));
+    memset(primos, 0, nPrimos);
+    memset(potencia, 0, nPrimos);
+    */
+    //int auxiliar1 = 0;
+    for(primo = 2; primo <= num; primo++){
+        //int check2 = 0;
+        int auxiliar2;
+        for(auxiliar2 = 0; num % primo == 0; num /= primo)//{
+            //primos[auxiliar1] = primo;
+            //num /= primo;
+            auxiliar2++;
+            //potencia[auxiliar1] = auxiliar2;
+            //potencia[auxiliar1]++;
+            //check2 = 1;
+            //printf("%d  %d  %d\n", num, primos[auxiliar1], potencia[auxiliar1] );
+        //}
+        if (auxiliar2 > 0) //{
+            //primos[auxiliar1] = primo;
+            //auxiliar1++;
+            printf("%d %d\n", primo, auxiliar2);
+        //}
+    }
+    /*
+    for (posicao = 0; posicao < auxiliar1; posicao++){
+        printf("%d ", potencia[posicao]);
+    }
+    printf("\n");
+    for (posicao = 0; posicao < auxiliar1; posicao++){
+        printf("%d ", primos[posicao]);
+    }
+    */       
 
-int next_prime(int n) {
-	int i = n == 2 ? n + 1 : n + 2;
-	// Como o primeiro número primo é o 2, n só pode assumir o valor de, pelo
-	// menos 2. Isso significa que o retorno da função será um número maior 
-	// que 2. Entretanto, todos os outros primos são ímpares, ou seja, i pode
-	// pular os números pares, por isso i += 2.
-	while(!is_prime(i)) i += 2;
-	return i;
-}
-
-int main() {
-	int n;
-	scanf("%d", &n);
-
-	for (int p = 2; n != 1; p = next_prime(p)) {
-		int count;
-		for (count = 0; n % p == 0; count++) n /= p;
-		if (count > 0) printf("%d %d\n", p, count);
-	}
-
-	return 0;
-}
+    return 0;
+}  
