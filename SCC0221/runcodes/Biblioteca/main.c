@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 					printf("Voce tem %d livro(s) alugado(s)\n", n_rented);
 					for (int i = 0; i < n_rented; i++) {
 						printf("Livro nome: %s\n", books[index_rented[i]].name);
-						printf("Devolve-lo daqui a %d dias\n", books[index_rented[i]].days);
+						printf("Devolve-lo daqui %d dias\n", books[index_rented[i]].days);
 					}
 				} else printf("Voce nao tem livros alugados\n");
 				break;
