@@ -5,25 +5,9 @@
 #include "../includes/parsing.h"
 #include "../includes/database.h"
 
-#define COMMA ","
-#define SQUO "'"
-#define DQUO "\""
-
 /**
- * TODO: metadata.key doesn't need to be a pointer, change so it isn't.
+ * TODO: Add a way to sort with different types of primary keys than Int.
  */
-
-void *binarySearch(void **list, int start, int end, void *key, int (*compare)(void *a, void *b)) {
-	if (start == end) return NULL;
-	// range [start, end)
-	int middle = (start + end) / 2;
-	if (compare(list[middle], key) == 0)
-		return list[middle];
-	else if (compare(list[middle], key) == 1)
-		return binarySearch(list, start, middle, key, compare);
-	else
-		return binarySearch(list, middle + 1, end, key, compare);
-}
 
 int compareKeyWithInt(void *a, void *b) {
 	int key = *(int *)((entry_t *)a)->key;
@@ -34,7 +18,11 @@ int compareKeyWithInt(void *a, void *b) {
 }
 
 void *search(database_t db, void *key) {
-	void *el = binarySearch((void **)db.index, 0, db.size, key, compareKeyWithInt);
+	entry_t **idx;
+	if (!index_exists(db.meta) || load_index(&idx, db.meta) != db.size)
+		idx = create_index(db);
+
+	void *el = binarySearch((void **)idx, 0, db.size, key, compareKeyWithInt);
 	if (el == NULL) return NULL;
 
 	return readRow(((entry_t *)el)->offset, db);
@@ -59,20 +47,25 @@ void print_row(metadata meta, void *row) {
 	int offset = 0;
 	for (int i = 0; i < meta.n_fields + 1; i++) {
 		field meta_field;
-		if (i == 0) meta_field = *meta.key;
-		else meta_field = *meta.fields[i - 1];
+		if (i == 0) meta_field = meta.key;
+		else meta_field = meta.fields[i - 1];
 
 		printf("%s: ", meta_field.name);
 		print_field(row + offset, meta_field.dtype, meta_field.size);
 		printf("\n");
 		offset += sizeofType(meta_field.dtype) * meta_field.size;
 	}
+	printf("\n");
 }
 
 int main(int argc, char *argv[]) {
 	char *filename = readLine(stdin);
 	FILE *fp = fopen(filename, "r");
-	metadata meta = *parseMetadata(fp);
+	if (fp == NULL) {
+		printf("Meta file does not exist.\n");
+		exit(EXIT_FAILURE);
+	}
+	metadata meta = parseMetadata(fp);
 	fclose(fp);
 
 	database_t db = open_databse(meta);
@@ -80,40 +73,31 @@ int main(int argc, char *argv[]) {
 	BOOL exit = FALSE;
 	while(!exit) {
 		char *command = readWord(stdin);
+
 		if (strcmp(command, "insert") == 0) {
 			char **fields = malloc((meta.n_fields + 1) * sizeof (char *));
 			for (int i = 0; i < meta.n_fields + 1; i++) {
 				field meta_field;
-				if (i == 0) meta_field = *meta.key;
-				else meta_field = *meta.fields[i - 1];
+				if (i == 0) meta_field = meta.key;
+				else meta_field = meta.fields[i - 1];
 
-				char *value;
-				if (meta_field.dtype == Char && meta_field.size == 1)
-					value = readBetween(SPACE SQUO COMMA, SQUO COMMA LN, stdin);
-				else if (meta_field.dtype == Char)
-					value = readBetween(SPACE DQUO COMMA, DQUO COMMA LN, stdin);
-				else
-					value = readBetween(SPACE COMMA, COMMA LN, stdin);
-
-				fields[i] = value;
+				fields[i] = parseField(meta_field, stdin);
 			}
 			insert(&db, fields);
-		} else if (strcmp(command, "search") == 0) {
-			char *key = readBetween(SPACE, LN, stdin);
-			void *result = search(db, strtoa(key, meta.key->dtype, meta.key->size));
-			if (result != NULL)
-				print_row(meta, result);
-			else
-				printf("Not found...\n");
 
-		} else if (strcmp(command, "index") == 0) {
+		} else if (strcmp(command, "search") == 0) {
+			char *key = parseField(meta.key, stdin);
+			void *result = search(db, strtoa(key, meta.key.dtype, meta.key.size));
+			if (result != NULL) print_row(meta, result);
+
+		} else if (strcmp(command, "index") == 0)
 			create_index(db);
-		} else if (strcmp(command, "exit") == 0) {
-			create_index(db);
+
+		else if (strcmp(command, "exit") == 0)
 			break;
-		} else {
+
+		else 
 			printf("Command not found...\n");
-		}
 	}
 
 	close_database(&db);

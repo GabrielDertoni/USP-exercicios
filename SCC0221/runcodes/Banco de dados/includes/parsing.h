@@ -4,23 +4,41 @@
 #include <stdio.h>
 #include "utils.h"
 
+// Macros para parsing.
+#define LN "\r\n"
+#define SPACE " "
+#define COMMA ","
+#define DOT "."
+#define SQUO "'"
+#define DQUO "\""
+#define LLETTER "abcdefghijklmnopqrstuvwxyz"
+#define ULETTER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#define LETTER LLETTER ULETTER
+#define DIGIT "0123456789"
+#define SIGN "-+"
+
+// Macros para quantidade de alocação.
+#define CHUNK 32
+#define FIELD_CHUNK 10
+
 // Enum que representa os diferentes tipos de campo.
 typedef enum Type { Void, Char, Int, Float, Double } type;
 // Struct de campo, utilizado para armazenar as informaçoes sobre um
 // campo.
 typedef struct Field {
-	char *name;
-	type dtype;
-	int size;
+	char *name; // Nome do campo.
+	type dtype; // Tipo do campo.
+	int size; // Tamanho do campo (expresso em múltiplose do tipo.
+	          // Ex.: dtype = Int, size = 1 -> 4 bytes)
 } field;
 
 // Struct de metadados, utilizado para armazenar os metadados do
 // banco de dados.
 typedef struct Metadata {
-	char *filename;
-	field *key;
-	int n_fields;
-	field **fields;
+	char *filename; // Nome do arquivo de registro.
+	field key; // Chave primária.
+	int n_fields; // Número de campos de dados.
+	field *fields; // Vetor de structs de cada campo.
 } metadata;
 
 /*----- Parsing -----*/
@@ -33,30 +51,20 @@ typedef struct Metadata {
 // field-name: <nome do campo>
 // field-type: <tipo do campo>[<tamanho do campo>]
 // (...)
-metadata *parseMetadata(FILE *fp);
+metadata parseMetadata(FILE *fp);
 // Lê um único campo com nome, tipo e tamanho de um arquivo de acordo com
 // o formato:
 // field-name: <nome do campo>
 // field-type: <tipo do campo>[<tamanho do campo>]
-field *parseField(FILE *fp);
-// Pula qualquer caractere dentro de ignore até que uma caractere
-// que não exista em ignore seja encontrada. Retorna o número de
-// caracteres ignoradas.
-int skip(char *ignore, FILE *fp);
+field parseMetaField(FILE *fp);
+
+char *parseField(field meta_field, FILE *fp);
 
 /*----- Conversão -----*/
 
 // Converte uma string para um type (enum).
 type str2type(char *str);
-
-/*-----  Tipos de caractere. -----*/
-
-BOOL isWord(int c);
-BOOL isLine(int c);
-BOOL isLetter(int c);
-BOOL isDigit(int c);
-BOOL isSpace(int c);
-BOOL isPartOfNumber(int c);
+void *strtoa(char *data, type dtype, int size);
 
 /*----- Funções de leitura. -----*/
 
@@ -69,13 +77,31 @@ char *readWord(FILE *fp);
 // Lê um inteir (ignora !isPartOfNumber(c) antes de ler).
 char *readInt(FILE *fp);
 
-// Lê enquanto condition(c) for verdadeiro.
-char *readWhile(BOOL (*condition)(int), FILE *fp);
+// Lê um número de ponto flutuante do arquivo (pode ser de qualquer tamanho, ex.: float, double, etc).
+char *readFloat(FILE *fp);
+
+// Lê enquanto nenuma caracter dentro de char *stop seja encontrada.
+char *readUntil(char *stop, FILE *fp);
 
 // Ignora qualquer caractere dentro de ignore_prefix antes de ler,
 // lê até que alguma caractere dentro de stop seja encontrada.
 char *readBetween(char *ignore_prefix, char *stop, FILE *fp);
-//int parseMetadata(char *filename);
+// Usa readOnce no prefixo, lê algumas caracteres contidas em char *some e depois
+// usa readOnce no sufixo. Caso o prefixo ou sufixo não tenham sido lidos exatamente
+// como char *prefix e char *postfix, retorna "". Caso contrário retorna o que foi lido no meio.
+char *readSomeBetween(char *prefix, char *some, char *postfix, FILE *fp);
+// Lê caracteres enquanto as caracteres lidas estiverem contidas em char *chars.
+// Retorna todas as caracteres lidas.
+char *readSome(char *chars, FILE *fp);
+// Lê do arquivo exatamente o número de caracteres em comum com char *chars.
+// Se a leitura conter exatamente essa sequência, nada a menos, retorna essas
+// caracteres lidas, senão, devolve todas as caracteres que a função tentou ler
+// com ungetc() (não anda com o ponteiro de arquivo para trás), e retorna "".
+char *readOnce(char *chars, FILE *fp);
+// Libera a memória alocada em char *str.
+void ignore(char *str);
+// Devolve todas as caracteres em char *str para a fila de leitur com ungetc().
+void unread (char *str, FILE *fp);
 
 /*----- Manipulação de erros. -----*/
 

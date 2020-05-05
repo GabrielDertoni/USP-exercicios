@@ -7,7 +7,7 @@
 // e retornar 1 caso a > b, -1 caso 1 a < b e 0 caso a = b. Start representa o índice de início para
 // a ordenação da lista, e end o final.
 void sortWith(void **list, int start, int end, int (*compare)(void *a, void *b)) {
-	// Range (start]
+	// Range (start, end]
 	// compare -> 1: a > b, -1: a < b, 0: a = b
 	if (abs(start - end) <= 1) return;
 
@@ -40,4 +40,16 @@ void sortWith(void **list, int start, int end, int (*compare)(void *a, void *b))
 		sortWith(list, start, p1, compare);
 		sortWith(list, p1 + 1, end, compare);
 	}
+}
+
+void *binarySearch(void **list, int start, int end, void *key, int (*compare)(void *a, void *b)) {
+	if (start == end) return NULL;
+	// range [start, end)
+	int middle = (start + end) / 2;
+	if (compare(list[middle], key) == 0)
+		return list[middle];
+	else if (compare(list[middle], key) == 1)
+		return binarySearch(list, start, middle, key, compare);
+	else
+		return binarySearch(list, middle + 1, end, key, compare);
 }
