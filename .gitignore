@@ -4,6 +4,9 @@
 # Unignore all with extensions
 !*.*
 
+# Unignore makefiles
+!*Makefile
+
 # Unignore all dirs
 !*/
 
@@ -16,3 +19,5 @@
 *Baixado/
 *.reg
 *.idx
+*.swp
+*.dat
