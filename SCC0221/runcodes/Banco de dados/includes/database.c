@@ -74,7 +74,7 @@ void *readRow(long foffset, database_t db) {
 		if (i == 0) meta_field = *db.meta.key;
 		else meta_field = *db.meta.fields[i - 1];
 		fread(result + offset, sizeofType(meta_field.dtype) * meta_field.size, 1, db.fp);
-		offset = sizeofType(meta_field.dtype) * meta_field.size;
+		offset += sizeofType(meta_field.dtype) * meta_field.size;
 	}
 	return result;
 }
@@ -208,11 +208,17 @@ database_t open_databse(metadata meta) {
 	long long n_reads = load_index(&idx, meta);
 	//printf("Read from index %lld objects\n", n_reads);
 
+	// TODO: Review this structure and change so that an index is only generated after a search or
+	// the index command.
 	database_t db = {
 		.meta = meta,
 		.fp = fp,
 		.size = size,
+		.index = NULL,
+		.allocated = 0;
 	};
+
+	/*
 	// Se o índice estiver desatualizado com os registros, reescreve o índice a partir dos registros
 	// e substitui o índice desatualizado.
 	if (n_reads != size) {
@@ -230,6 +236,7 @@ database_t open_databse(metadata meta) {
 	db.index = idx;
 	db.allocated = n_reads;
 	fp = fopen(meta.filename, "a+");
+	*/
 
 	return db;
 }

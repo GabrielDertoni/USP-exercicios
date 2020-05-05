@@ -91,21 +91,16 @@ int main(int argc, char *argv[]) {
 				if (meta_field.dtype == Char && meta_field.size == 1)
 					value = readBetween(SPACE SQUO COMMA, SQUO COMMA LN, stdin);
 				else if (meta_field.dtype == Char)
-					value = readBetween(SPACE DQUO COMMA, SQUO COMMA LN, stdin);
+					value = readBetween(SPACE DQUO COMMA, DQUO COMMA LN, stdin);
 				else
 					value = readBetween(SPACE COMMA, COMMA LN, stdin);
-
-				printf("Just read field %s with value: %s\n", meta_field.name, value);
 
 				fields[i] = value;
 			}
 			insert(&db, fields);
 		} else if (strcmp(command, "search") == 0) {
 			char *key = readBetween(SPACE, LN, stdin);
-			printf("Searching with key %s\n", key);
 			void *result = search(db, strtoa(key, meta.key->dtype, meta.key->size));
-			//int k = 3;
-			//void *result = search(db, (void *)&k);
 			if (result != NULL)
 				print_row(meta, result);
 			else
