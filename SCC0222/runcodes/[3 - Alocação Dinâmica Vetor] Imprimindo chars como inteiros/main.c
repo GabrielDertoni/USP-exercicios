@@ -4,60 +4,48 @@
 
 #define CHUNK 20
 
-char *readUntil(char *stop, FILE *fp);
+char *readInput();
 void sortChars(char *begin, char *end);
 
 int main(int argc, char *argv[]) {
-	char *chars = readUntil("x", stdin);
+	char *chars = readInput();
 	int len = strlen(chars);
 	sortChars(chars, chars + len);
-
-	if (argc == 2) {
-		FILE *fp = fopen(argv[1], "w");
-		for (int i = 0; i < len; i++) {
-			if (i != 0 && i % 4 == 0) putc('\n', fp);
-			if (chars[i] == '\r') fprintf(fp, "\\r");
-			else if (chars[i] == '\n') fprintf(fp, "\\n");
-			else putc(chars[i], fp);
-		}
-		fclose(fp);
-	}
 	
-	for (int i = 0; i < len;) {
-		if (chars[i] != '\r' && chars[i] != '\n') {
-			int output = 0;
-			for (int j = 0; j < sizeof(int) && i + j < len; j++)
-				output |= (int)chars[i + j] << (j * 8 * sizeof(char));
+	for (int i = 0; i < len; i += sizeof(int)) {
+		int output = 0;
+		for (int j = 0; j < sizeof(int) && i + j < len; j++)
+			output |= (int)chars[i + j] << (j * 8 * sizeof(char));
 
-			printf("%d\n", output);
-			i += sizeof(int);
-		} else {
-			i++;
-		}
+		printf("%d\n", output);
 	}
+
+	free(chars);
 	
 	return 0;
 }
 
-char *readUntil(char *stop, FILE *fp) {
-	if (feof(fp)) return "";
-	char c = getc(fp);
+char *readInput() {
+	if (feof(stdin)) return "";
 
+	char c;
 	// Registra a quantidade de memória alocada ( + 1 para '\0').
 	int allocated = 0;
 	char *string = NULL;
 	int i = 0;
-	for (i = 0; strchr(stop, c) == NULL && !feof(fp); i++, c = getc(fp)) {
-		// Caso a memória alocada tenha terminado, aloca outro chunk.
-		if (i >= allocated - 1) {
-			// Garante que haverá espaço para o \0
-			allocated *= 2;
-			if (allocated == 0) allocated += CHUNK;
-			string = (char *)realloc(string, allocated);
+	do {
+		c = getc(stdin);
+		if (c != '\n' && c != '\r') {
+			// Caso a memória alocada tenha terminado, aloca outro chunk.
+			if (i >= allocated - 1) {
+				// Garante que haverá espaço para o \0
+				allocated *= 2;
+				if (allocated == 0) allocated += CHUNK;
+				string = (char *)realloc(string, allocated);
+			}
+			string[i++] = c; // Escreve a entrada na memória.
 		}
-		string[i] = c; // Escreve a entrada na memória.
-	}
-	if (c != EOF) ungetc(c, fp);
+	} while(!feof(stdin) && c != 'x');
 	if (allocated == 0) return "";
 	string[i] = '\0'; // Adiciona '\0' ao final.
 	string = (char *)realloc(string, (i + 1) * sizeof(char));
