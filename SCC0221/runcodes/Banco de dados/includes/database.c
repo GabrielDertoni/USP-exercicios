@@ -96,11 +96,27 @@ char *index_name(metadata meta) {
 	return filename;
 }
 
+int (*compareTypeKeys(field key_field))(void *, void *) {
+	switch (key_field.dtype) {
+		case Char:
+			if (key_field.size == 1) return compareCharKeys;
+			else return compareStringKeys;
+		case Int:
+			return compareIntKeys;
+		case Float:
+			return compareFloatKeys;
+		case Double:
+			return compareDoubleKeys;
+		default:
+			return compareIntKeys;
+	}
+}
+
 // Gera um arquivo de índice.
 entry_t **create_index(database_t db) {
 	// Cria um índice fora de ordem a partir da leitura dos registros.
 	entry_t **idx = reg2index(db);
-	sortWith((void **)idx, 0, db.size - 1, compareIntKeys);
+	sortWith((void **)idx, 0, db.size - 1, compareTypeKeys(db.meta.key));
 
 	char *filename = index_name(db.meta);
 	FILE *fp = fopen(filename, "w");
@@ -206,33 +222,70 @@ database_t open_databse(metadata meta) {
 void close_database(database_t *db) { fclose(db->fp); }
 
 int compareTypes(void *a, void *b, type dtype, int size) {
-	if (dtype == Char) {
-		for (int i = 0; i < size && *(char *)a != '\0' && *(char *)b != '\0'; i++)
-			if (*(char *)a > *(char *)b) return 1;
-			else if (*(char *)a < *(char *)b) return -1;
-			else continue;
+	switch(dtype) {
+		case Char:
+			if (size > 1 || size < 0) {
+				for (int i = 0; (i < size || size < 0) && *(char *)a != '\0' && *(char *)b != '\0'; i++)
+					if (*(char *)a > *(char *)b) return 1;
+					else if (*(char *)a < *(char *)b) return -1;
+					else a++, b++;
 
-		if (*(char *)a == '\0' && *(char *)b == '\0') return 0;
-		else if (*(char *)a == '\0') return -1;
-		else return 1;
-	} else if (dtype == Int) {
-		if (*(int *)a > *(int *)b) return 1;
-		else if (*(int *)a < *(int *)b) return -1;
-		else return 0;
-	} else if (dtype == Float) {
-		if (*(float *)a > *(float *)b) return 1;
-		else if (*(float *)a < *(float *)b) return -1;
-		else return 0;
-	} else if (dtype == Double) {
-		if (*(double *)a > *(double *)b) return 1;
-		else if (*(double *)a < *(double *)b) return -1;
-		else return 0;
+				if (*(char *)a == '\0' && *(char *)b == '\0') return 0;
+				else if (*(char *)a == '\0') return -1;
+				else return 1;
+			} else
+				if (*(char *)a > *(char *)b) return 1;
+				else if (*(char *)a < *(char *)b) return -1;
+				else return 0;
+
+		case Int:
+			if (*(int *)a > *(int *)b) return 1;
+			else if (*(int *)a < *(int *)b) return -1;
+			else return 0;
+
+		case Float:
+			if (*(float *)a > *(float *)b) return 1;
+			else if (*(float *)a < *(float *)b) return -1;
+			else return 0;
+
+		case Double:
+			if (*(double *)a > *(double *)b) return 1;
+			else if (*(double *)a < *(double *)b) return -1;
+			else return 0;
+
+		default:
+			return -2;
 	}
-	return -2;
+}
+
+// TODO: Encontrar um jeito melhor de fazer essas funções.
+
+int compareCharKeys(void *a, void *b) {
+	entry_t *enta = (entry_t *)a;
+	entry_t *entb = (entry_t *)b;
+	return compareTypes(enta->key, entb->key, Char, 1);
+}
+
+int compareStringKeys(void *a, void *b) {
+	entry_t *enta = (entry_t *)a;
+	entry_t *entb = (entry_t *)b;
+	return compareTypes(enta->key, entb->key, Char, -1);
 }
 
 int compareIntKeys(void *a, void *b) {
 	entry_t *enta = (entry_t *)a;
 	entry_t *entb = (entry_t *)b;
 	return compareTypes(enta->key, entb->key, Int, 1);
+}
+
+int compareFloatKeys(void *a, void *b) {
+	entry_t *enta = (entry_t *)a;
+	entry_t *entb = (entry_t *)b;
+	return compareTypes(enta->key, entb->key, Float, 1);
+}
+
+int compareDoubleKeys(void *a, void *b) {
+	entry_t *enta = (entry_t *)a;
+	entry_t *entb = (entry_t *)b;
+	return compareTypes(enta->key, entb->key, Double, 1);
 }

@@ -36,9 +36,9 @@ void print_field(void *data, type dtype, int size) {
 	else if (dtype == Int)
 		printf("%d", *(int *)data);
 	else if (dtype == Float)
-		printf("%f", *(float *)data);
+		printf("%.2f", *(float *)data);
 	else if (dtype == Double)
-		printf("%lf", *(double *)data);
+		printf("%.2lf", *(double *)data);
 	else
 		printf("Type not recognized...\n");
 }

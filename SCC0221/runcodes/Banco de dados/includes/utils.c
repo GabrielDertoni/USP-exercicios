@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "util.h"
+#include "utils.h"
 
 // Implementação de Quick Sort geral para quaquer lista de ponteiros e qualquer função de
 // comparação. Essa função de comparação deve receber os dois elementos a serem comparados como void *

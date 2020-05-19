@@ -15,9 +15,16 @@
 *.out
 *.DS_Store
 *Casos\ de\ Teste*
-*SCC0200/
+
+# Ignore other folders
+*/
+!SCC0221/
+!SCC0222/
+
 *Baixado/
 *.reg
 *.idx
 *.swp
 *.dat
+*.test
+*.zip
