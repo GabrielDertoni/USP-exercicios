@@ -28,20 +28,6 @@ long long sizeofRow(metadata meta) {
 	return n_bytes;
 }
 
-void setField(void *ptr, char *data, type dtype, int size) {
-	if (dtype == Char) {
-		for (int i = 0; i < size && data[i] != '\0'; i++)
-			((char *)ptr)[i] = data[i];
-
-	} else if (dtype == Int) {
-		*((int *)ptr) = atoi(data);
-	} else if (dtype == Float) {
-		*((float *)ptr) = (float)atof(data);
-	} else if (dtype == Double) {
-		*((double *)ptr) = atof(data);
-	}
-}
-
 void writeField(char *data, type dtype, int size, FILE *fp) {
 	void *ptr = strtoa(data, dtype, size);
 	fwrite(ptr, sizeofType(dtype), size, fp);
@@ -64,22 +50,11 @@ void *readRow(long foffset, database_t db) {
 }
 
 void insert(database_t *db, char **data) {
-	entry_t *entry = (entry_t *)malloc(sizeof(entry_t));
 	// Itera por todos os campos. Desde a chave promária até o último campo.
 	for (int i = 0; i < db->meta.n_fields + 1; i++) {
 		field meta_field; // Informações sobre o campo sendo considerado.
-		if (i == 0) {
-			meta_field = db->meta.key;
-			// Aloca memória para o tipo da chave primária.
-			entry->key = malloc(sizeofType(meta_field.dtype) * meta_field.size);
-			// Escreve na chave primária o valor inserido na entrada.
-			setField(entry->key, data[i], meta_field.dtype, meta_field.size);
-			// Armazena a posição atual do cursor como o offset, já que a chave
-			// primária é sempre o primeiro dos campos a serem inseridos.
-			entry->offset = ftell(db->fp);
-		} else {
-			meta_field = db->meta.fields[i - 1];
-		}
+		if (i == 0) meta_field = db->meta.key;
+		else meta_field = db->meta.fields[i - 1];
 		// Escreve os dados inseridos no arquivo de registro.
 		writeField(data[i], meta_field.dtype, meta_field.size, db->fp);
 	}

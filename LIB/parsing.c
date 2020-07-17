@@ -1,88 +1,62 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "parsing.h"
 
-// Macros para parsing
-#define LN "\r\n"
-#define SPACE " "
-#define COMMA ","
-#define DOT "."
-#define SQUO "'"
-#define DQUO "\""
-#define LLETTER "abcdefghijklmnopqrstuvwxyz"
-#define ULETTER "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#define LETTER LLETTER ULETTER
-#define DIGIT "0123456789"
-#define SIGN "-+"
+char *readWord(FILE *fp) { return readSome(LETTER DIGIT, fp); }
+char *readLine(FILE *fp) { return readUntil(LN, fp); }
 
-// Macros para quantidade de alocação.
-#define CHUNK 32
+int maybeReallocate(void **ptr, int size, int allocated) {
+	if (size >= allocated) {
+		allocated *= 2;
+		if (allocated <= 0) allocated += CHUNK;
+		*ptr = realloc(*ptr, allocated);
+	}
+	return allocated;
+}
 
 int ignoreUntill(char *stop, FILE *fp) {
-	if (feof(fp)) return 0;
-	char c = getc(fp);
+	char c;
 	int i;
-	for (i = 0; strchr(stop, c) == NULL && !feof(fp); i++, c = getc(fp));
+	for (i = 0; !feof(fp) && strchr(stop, c); i++);
 	ungetc(c, fp);
 	return i;
 }
 
 int ignoreSome(char *chars, FILE *fp) {
-	if (feof(fp)) return 0;
-	char c = getc(fp);
+	char c;
 	int i;
-	for (i = 0; strchr(chars, c) != NULL && !feof(fp), i++, c = getc(fp));
-	ungetc(c, fp)
+	for (i = 0; !feof(fp) && !strchr(chars, c = getc(fp)); i++);
+	ungetc(c, fp);
 	return i;
 }
 
 char *readUntil(char *stop, FILE *fp) {
-	if (feof(fp)) return "";
-	char c = getc(fp);
-
-	// Registra a quantidade de memória alocada ( + 1 para '\0').
-	int allocated = 0;
+	char c;
+	int i, allocated;
 	char *string = NULL;
-	int i = 0;
-	for (i = 0; strchr(stop, c) == NULL && !feof(fp); i++, c = getc(fp)) {
-		// Caso a memória alocada tenha terminado, aloca outro chunk.
-		if (i >= allocated - 1) {
-			// Garante que haverá espaço para o \0
-			allocated *= 2;
-			if (allocated == 0) allocated += CHUNK;
-			string = (char *)realloc(string, allocated);
-		}
-		string[i] = c; // Escreve a entrada na memória.
+	for (i = 0, allocated = 0; !feof(fp) && !strchr(stop, c = getc(fp)); i++) {
+		allocated = maybeReallocate((void **)&string, i, allocated - 1);
+		string[i] = c;
 	}
-	if (c != EOF) ungetc(c, fp);
 	if (allocated == 0) return "";
-	string[i] = '\0'; // Adiciona '\0' ao final.
-	string = (char *)realloc(string, (i + 1) * sizeof(char));
-	return string;
+	ungetc(c, fp);
+	string[i] = '\0';
+	return (char *)realloc(string, (i + 1) * sizeof(char));
 }
 
 char *readSome(char *chars, FILE *fp) {
-	if (feof(fp)) return "";
-	char c = getc(fp);
-	// Registra a quantidade de memória alocada ( + 1 para '\0').
-	int allocated = 0;
+	char c;
+	int i, allocated;
 	char *string = NULL;
-	int i = 0;
-	for (i = 0; strchr(chars, c) != NULL && !feof(fp); i++, c = getc(fp)) {
-		// Caso a memória alocada tenha terminado, aloca outro chunk.
-		if (i >= allocated - 1) {
-			// Garante que haverá espaço para o \0
-			allocated *= 2;
-			if (allocated == 0) allocated += CHUNK;
-			string = (char *)realloc(string, allocated);
-		}
-		string[i] = c; // Escreve a entrada na memória.
+	for (i = 0, allocated = 0; !feof(fp) && strchr(chars, c = getc(fp)); i++) {
+		allocated = maybeReallocate((void **)&string, i, allocated - 1);
+		string[i] = c;
 	}
-	if (c != EOF) ungetc(c, fp);
 	if (allocated == 0) return "";
-	string[i] = '\0'; // Adiciona '\0' ao final.
-	string = (char *)realloc(string, (i + 1) * sizeof(char));
-	return string;
+	ungetc(c, fp);
+	string[i] = '\0';
+	return (char *)realloc(string, (i + 1) * sizeof(char));
 }
 
 void ignore(char *str) {

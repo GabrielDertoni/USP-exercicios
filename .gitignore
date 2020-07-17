@@ -20,6 +20,7 @@
 */
 !SCC0221/
 !SCC0222/
+!LIB/
 
 *Baixado/
 *.reg
@@ -28,3 +29,4 @@
 *.dat
 *.test
 *.zip
+*.pdf

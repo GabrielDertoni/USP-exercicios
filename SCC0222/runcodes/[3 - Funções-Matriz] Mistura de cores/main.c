@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MIN(a, b) a < b ? a : b
+
 typedef struct {
 	unsigned short red;
 	unsigned short green;
@@ -21,9 +23,9 @@ int main(int argc, char *argv[]) {
 	printPallete(pallete);
 
 	color_t mixed = mixColors(pallete[p1], pallete[p2]);
-	pallete[p3].red   += mixed.red;
-	pallete[p3].green += mixed.green;
-	pallete[p3].blue  += mixed.blue;
+	pallete[p3].red   = MIN(pallete[p3].red + mixed.red, 255);
+	pallete[p3].green = MIN(pallete[p3].green + mixed.green, 255);
+	pallete[p3].blue  = MIN(pallete[p3].blue + mixed.blue, 255);
 
 	printf("\nResult:\n");
 	printPallete(pallete);

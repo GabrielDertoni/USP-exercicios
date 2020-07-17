@@ -80,7 +80,7 @@ char *readInt(FILE *fp);
 // Lê um número de ponto flutuante do arquivo (pode ser de qualquer tamanho, ex.: float, double, etc).
 char *readFloat(FILE *fp);
 
-// Lê enquanto nenuma caracter dentro de char *stop seja encontrada.
+// Lê enquanto nenhuma caracter dentro de char *stop seja encontrada.
 char *readUntil(char *stop, FILE *fp);
 
 // Ignora qualquer caractere dentro de ignore_prefix antes de ler,
