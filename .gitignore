@@ -17,9 +17,10 @@
 *Casos\ de\ Teste*
 
 # Ignore other folders
-*/
 !SCC0221/
 !SCC0222/
+!SCC0202/
+!SCC0220/
 !LIB/
 
 *Baixado/
