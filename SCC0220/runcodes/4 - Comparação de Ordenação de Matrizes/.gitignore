@@ -1,0 +1,5 @@
+*.txt
+*.vscode
+obj/
+*.zip
+*.pdf
