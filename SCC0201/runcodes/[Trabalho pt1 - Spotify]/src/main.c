@@ -72,6 +72,7 @@ author_list_t extract_authors(csv_t *csv) {
     return list;
 }
 
+
 char *readline(FILE *fp) {
     char *str = NULL;
     int i, c;
@@ -86,7 +87,7 @@ char *readline(FILE *fp) {
         }
         str[i] = c;
     }
-    
+
     if (c != EOF) ungetc(c, fp);
     if (alloc == 0) return NULL;
     str[i] = '\0';
@@ -121,7 +122,6 @@ int main(int argc, char *argv[]) {
     csv_load(csv, fname);
 
     free(fname);
-
     author_list_t author_list = extract_authors(csv);
     author_t **authors = author_list.values;
 
