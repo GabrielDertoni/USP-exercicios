@@ -149,15 +149,16 @@ big_int_t *big_int_sum(big_int_t *a, big_int_t *b) {
 }
 
 int big_int_compare(big_int_t *a, big_int_t *b) {
-    if (a->ndigits != b->ndigits) return a->ndigits - b->ndigits;
+    if (a->sign != b->sign) return a->sign - b->sign;
+    if (a->ndigits != b->ndigits) return a->sign * (a->ndigits - b->ndigits);
 
     num_node_t *na = a->head, *nb = b->head;
     for (int i = 0;
          i < a->ndigits && na->digits == nb->digits;
          na = na->next, nb = nb->next, i++);
 
-    if (na->digits > nb->digits) return 1;
-    else if (na->digits < nb->digits) return -1;
+    if (na->digits > nb->digits) return a->sign;
+    else if (na->digits < nb->digits) return -1 * a->sign;
     else return 0;
 }
 

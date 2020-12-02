@@ -20,6 +20,9 @@ $(BIN): $(OBJS)
 run:
 	./$(BIN)
 
+debug:
+	$(CC) $(CFLAGS) -DDEBUG -g $(SRCS) -o $(BIN) -I $(HDR)
+
 # Compiling to .o
 $(OBJ)/%.o: $(SRC)/%.c $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@ -I $(HDR)
@@ -28,27 +31,20 @@ $(OBJ)/%.o: $(SRC)/%.c $(OBJ)
 $(OBJ):
 	mkdir -p $(OBJ)
 
+zip:
+	rm -f Envio.zip
+	zip -r Envio.zip Makefile $(HDR) $(SRC)
+
+.SILENT: testcase
+testcase: $(BIN)
+	./$(BIN) < "$(CASE)" | diff --color=always -u -Z -B --label GOT --label "EXPECTED ($(CASE))" - "$(subst .in,.out,$(CASE))" && \
+	echo "\033\033[1;32mTudo certo!\033[0m" || \
+	echo "\033\033[1;31mAlguns erros... Verifique acima.\033[0m"
+
 # Cleaning.
 clean:
-	rm $(TESTS)
 	rm $(OBJ)/*
 	rmdir $(OBJ)
 	rm $(BIN)
-
-
-
-zip:
-	rm -f Envio.zip
-	zip -r Envio.zip $(SRC) $(HDR) Makefile
-
-.SILENT=runcodes
-# Simulates runcodes environment.
-runcodes: $(BIN)
-	find . -regex ".*\.in" | \
-	parallel "cat {} | \
-		  ./$(BIN) | \
-		  diff --color=always -u -Z --label GOT --label \"EXPECTED ({/})\" - {.}.out" && \
-	echo "\033\033[1;32mTudo certo!\033[0m" || \
-	echo "\033\033[1;31mAlguns erros... Verifique acima.\033[0m"
 
 

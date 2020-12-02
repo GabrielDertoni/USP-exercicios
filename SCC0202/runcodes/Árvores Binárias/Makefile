@@ -28,27 +28,21 @@ $(OBJ)/%.o: $(SRC)/%.c $(OBJ)
 $(OBJ):
 	mkdir -p $(OBJ)
 
+
+zip:
+	zip -r Envio.zip $(SRC) $(HDR) Makefile
+
+.SILENT=testcase
+testcase: $(BIN)
+	./$(BIN) < "$(CASE)" | diff --color=always -u -Z --label GOT --label "EXPECTED ($(CASE))" - "$(subst .in,.out,$(CASE))" && \
+	echo "\033\033[1;32mTudo certo!\033[0m" || \
+	echo "\033\033[1;31mAlguns erros... Verifique acima.\033[0m"
+
 # Cleaning.
 clean:
-	rm $(TESTS)
 	rm $(OBJ)/*
 	rmdir $(OBJ)
 	rm $(BIN)
-
-
-
-zip:
 	rm -f Envio.zip
-	zip -r Envio.zip $(SRC) $(HDR) Makefile
-
-.SILENT=runcodes
-# Simulates runcodes environment.
-runcodes: $(BIN)
-	find . -regex ".*\.in" | \
-	parallel "cat {} | \
-		  ./$(BIN) | \
-		  diff --color=always -u -Z --label GOT --label \"EXPECTED ({/})\" - {.}.out" && \
-	echo "\033\033[1;32mTudo certo!\033[0m" || \
-	echo "\033\033[1;31mAlguns erros... Verifique acima.\033[0m"
 
 
